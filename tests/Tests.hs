@@ -331,6 +331,19 @@ case_backtracking = do
       result = execParserPure (prefs noBacktrack) i ["c", "-b"]
   assertError result $ \ _ -> return ()
 
+case_backtracking_not_required :: Assertion
+case_backtracking_not_required = do
+  let p2 = switch (short 'a')
+      p3 = switch (short 'b')
+      p1 = (,)
+        <$> subparser (command "c" (info ((,) <$> p2 <*> p3) idm))
+        <*> switch (short 'd')
+      i = info (p1 <**> helper) idm
+      result = run i ["c", "-d", "-b"]
+  case result of
+    Success r -> ((False, True), True) @=? r
+    _ -> assertFailure "unexpected parse error"
+
 case_error_context :: Assertion
 case_error_context = do
   let p = pk <$> option auto (long "port")
